@@ -5,17 +5,11 @@ const cors = require('cors');
 
 const app = express();
 
-app.use(cors(corsOptions));
+app.use(cors());
 
 require('dotenv').config();
 require('./db')
 const PORT = 4000;
-
-var corsOptions = {
-    origin: 'http://localhost:8080',
-    optionsSuccessStatus: 200, 
-    methods: "GET, PUT, PATCH, DELETE"
-}
 app.use(bodyParser.json());
 app.use('/users', userRoutes );
 
