@@ -1,8 +1,7 @@
 const express = require('express');
 const User = require('../models/user');
 const router = express.Router();
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+
 
 router.get('/', (req, res) => {
     res.send('User routes are working!');
@@ -10,66 +9,26 @@ router.get('/', (req, res) => {
 
 router.post('/register', async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, email, message } = req.body;
         let user_exist = await User.findOne({ email: email });
+
         if (user_exist) {
             return res.status(400).json({
                 success: false,
                 msg: 'User already exists'
             });
-        }
-        else {
-            const user = new User({ name, email, password });
-            const payload = {
-                user: {
-                    id: user._id
-                }
-            }
-
+        } else {
+            const user = new User({ name, email, message });
             await user.save();
-            jwt.sign(payload, process.env.JWT_SECRET_KEY, (err, token) => {
-                if (err) throw err;
-                res.status(201).send({
-                    success: true,
-                    token: token,
-                    user: user,
-                    message: "User Created Successfully"
-                });
+            res.status(201).send({
+                success: true,
+                user: user,
+                message: "User Created Successfully"
             });
-
         }
-
-    }
-
-    catch (err) {
-       console.log(err)
-    }
-
-});
-router.post('/login', async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        const user = await User.findOne({ email });
-
-        if (!user) {
-            throw new Error('Unable to login , invalid credentials');
-        }
-
-        const isMatch = await bcrypt.compare(password, user.password);
-
-        if (!isMatch) {
-            
-            throw new Error('Unable to login , invalid credentials');
-        }
-
-        const token = jwt.sign({
-            _id: user._id.toString()
-        }, process.env.JWT_SECRET_KEY);
-
-        res.send({ user, token, message: "Logged in successfully" });
-    }
-    catch (err) {
-        res.status(400).send({ error: err });
+    } catch (err) {
+        console.log(err);
+        res.status(500).send({ error: "Server error" });
     }
 });
 
